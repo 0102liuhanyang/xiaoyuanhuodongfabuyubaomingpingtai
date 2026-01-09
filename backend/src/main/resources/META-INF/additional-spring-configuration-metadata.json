@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "description": "JWT signing secret (HMAC)."
+    },
+    {
+      "name": "app.jwt.expire-hours",
+      "type": "java.lang.Long",
+      "description": "JWT expiration hours."
+    }
+  ]
+}
