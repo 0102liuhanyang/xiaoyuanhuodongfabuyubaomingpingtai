@@ -6,4 +6,6 @@ import com.work.xiaoyuanhuodongfabuyubaomingpingtai.model.entity.Registration;
 public interface RegistrationService extends IService<Registration> {
     boolean canRegister(Long eventId, Long userId);
     Registration register(Long eventId, Long userId);
+    Registration cancel(Long eventId, Long userId);
+    void promoteWaitlist(Long eventId, int capacity);
 }

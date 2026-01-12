@@ -6,7 +6,7 @@
         <div>
           <p class="eyebrow">欢迎回来</p>
           <h2>登录校园活动平台</h2>
-          <p class="sub">使用演示账号：admin / 123456 或 stu1 / 123456</p>
+          <p class="sub">使用演示账号：admin / 123456、org1 / 123456 或 stu1 / 123456</p>
         </div>
       </div>
       <el-form :model="form" label-position="top" @submit.prevent>
@@ -19,6 +19,7 @@
         <el-form-item>
           <el-button type="primary" block @click="onLogin">登录</el-button>
         </el-form-item>
+        <el-button link type="primary" @click="goRegister">没有账号，去注册</el-button>
         <el-alert v-if="hint" :title="hint" type="info" show-icon />
       </el-form>
     </div>
@@ -27,19 +28,46 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import request from '../utils/request'
+import { setName, setRoles, setToken } from '../utils/auth'
+import { useAuthStore } from '../store/auth'
 
 const form = reactive({ username: '', password: '' })
 const hint = ref('')
 const router = useRouter()
+const route = useRoute()
+const goRegister = () => {
+  router.push('/register')
+}
+const authStore = useAuthStore()
 
-const onLogin = () => {
+const getDefaultPath = (roles) => {
+  if (roles.includes('admin')) return '/admin/approvals'
+  if (roles.includes('organizer')) return '/manage/events'
+  return '/'
+}
+
+const onLogin = async () => {
   if (!form.username || !form.password) {
-    hint.value = '请输入用户名和密码（示例：admin/123456 或 stu1/123456）'
+    hint.value = '请输入用户名和密码（示例：admin/123456、org1/123456 或 stu1/123456）'
     return
   }
-  hint.value = '登录成功，跳转中...'
-  setTimeout(() => router.push('/'), 500)
+  try {
+    const data = await request.post('/auth/login', form)
+    const roles = (data.roles || '').split(',').filter(Boolean)
+    setToken(data.token)
+    setRoles(roles)
+    if (data.name) setName(data.name)
+    authStore.setAuth({ token: data.token, roles, name: data.name })
+    ElMessage.success('登录成功')
+    const redirect = route.query.redirect
+    const target = redirect ? redirect : getDefaultPath(roles)
+    router.push(target)
+  } catch (e) {
+    // error handled by interceptor
+  }
 }
 </script>
 

@@ -8,8 +8,12 @@ import java.time.LocalDateTime;
 public class EventQuery {
     private String keyword;
     private String category;
+    private String tags;
     private LocalDateTime start;
     private LocalDateTime end;
     private Integer page = 1;
     private Integer size = 10;
+    private String status;
+    private String sortBy; // startTime/createTime
+    private String sortOrder; // asc/desc
 }

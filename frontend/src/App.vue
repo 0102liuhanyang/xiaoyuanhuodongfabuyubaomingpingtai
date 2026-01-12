@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <el-container class="layout">
+    <router-view v-if="!isLoggedIn" />
+    <el-container v-else class="layout">
       <el-aside width="220px" class="aside">
         <div class="brand">
           <div class="brand-logo">校园</div>
@@ -14,23 +15,55 @@
           active-text-color="#ffd26f"
           @select="onSelect"
         >
-          <el-menu-item index="/">
+          <el-menu-item index="/" v-if="isStudent || isOrganizer">
             <span>活动列表</span>
           </el-menu-item>
-          <el-menu-item index="/my/registrations">
+          <el-menu-item index="/my/registrations" v-if="isStudent">
             <span>我的报名</span>
           </el-menu-item>
-          <el-menu-item index="/manage/events">
+          <el-menu-item index="/checkin" v-if="isStudent">
+            <span>签到入口</span>
+          </el-menu-item>
+          <el-menu-item index="/manage/events" v-if="isOrganizer">
             <span>活动管理</span>
           </el-menu-item>
-          <el-menu-item index="/login">
-            <span>登录</span>
+          <el-menu-item index="/manage/registrations" v-if="isOrganizer">
+            <span>报名管理</span>
+          </el-menu-item>
+          <el-menu-item index="/manage/checkin" v-if="isOrganizer">
+            <span>签到管理</span>
+          </el-menu-item>
+          <el-menu-item index="/manage/stats" v-if="isOrganizer">
+            <span>活动统计</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/approvals" v-if="isAdmin">
+            <span>活动审核</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/events" v-if="isAdmin">
+            <span>活动监管</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/stats" v-if="isAdmin">
+            <span>汇总统计</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/blacklist" v-if="isAdmin">
+            <span>黑名单管理</span>
+          </el-menu-item>
+          <el-menu-item index="/notifications" v-if="isLoggedIn">
+            <span>
+              通知中心
+              <el-badge v-if="unread > 0" :value="unread" class="badge" />
+            </span>
           </el-menu-item>
         </el-menu>
       </el-aside>
       <el-container>
         <el-header class="header">
           <div class="header-title">校园活动发布与报名管理平台</div>
+          <div class="header-user">
+            <el-avatar size="small" class="avatar">{{ nameInitial }}</el-avatar>
+            <span class="username">{{ displayName }}</span>
+            <el-button link type="primary" @click="logout">退出</el-button>
+          </div>
         </el-header>
         <el-main class="main">
           <router-view />
@@ -41,8 +74,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from './store/auth'
+import request from './utils/request'
 
 const route = useRoute()
 const router = useRouter()
@@ -51,6 +86,61 @@ const activePath = computed(() => route.path)
 const onSelect = (path) => {
   router.push(path)
 }
+
+const authStore = useAuthStore()
+const isLoggedIn = computed(() => authStore.isLoggedIn.value)
+const isAdmin = computed(() => authStore.isAdmin.value)
+const isStudent = computed(() => authStore.state.roles.includes('student'))
+const isOrganizer = computed(() => authStore.state.roles.includes('organizer'))
+const displayName = computed(() => authStore.state.name || '用户')
+const nameInitial = computed(() => displayName.value.slice(0, 1))
+const unread = ref(0)
+
+let unreadTimer = null
+
+const logout = () => {
+  authStore.reset()
+  unread.value = 0
+  if (unreadTimer) {
+    clearInterval(unreadTimer)
+    unreadTimer = null
+  }
+  router.push('/login')
+}
+
+const fetchUnread = async () => {
+  if (!isLoggedIn.value) {
+    unread.value = 0
+    return
+  }
+  try {
+    const data = await request.get('/notifications/unread-count')
+    unread.value = data || 0
+  } catch (e) {
+    unread.value = 0
+  }
+}
+
+onMounted(() => {
+  fetchUnread()
+  unreadTimer = setInterval(fetchUnread, 30000)
+})
+
+const handleUnreadRefresh = () => {
+  fetchUnread()
+}
+
+onMounted(() => {
+  window.addEventListener('notifications:refresh', handleUnreadRefresh)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('notifications:refresh', handleUnreadRefresh)
+  if (unreadTimer) {
+    clearInterval(unreadTimer)
+    unreadTimer = null
+  }
+})
 </script>
 
 <style scoped>
@@ -110,6 +200,9 @@ const onSelect = (path) => {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.4px;
+}
+.badge {
+  margin-left: 6px;
 }
 .main {
   padding: 20px;

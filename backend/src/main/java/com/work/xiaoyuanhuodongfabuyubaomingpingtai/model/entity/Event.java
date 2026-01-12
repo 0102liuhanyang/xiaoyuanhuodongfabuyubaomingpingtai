@@ -19,11 +19,14 @@ public class Event {
     private String category;
     private String tags; // 逗号分隔或 JSON
     private String location;
+    private LocalDateTime signupStartTime;
+    private LocalDateTime signupEndTime;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer capacity;
     private String status;
-    private String coverUrl;
+    private String checkinCode;
+    private LocalDateTime checkinValidUntil;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -8,14 +8,11 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("registrations")
-public class Registration {
+@TableName("registration_blacklist")
+public class RegistrationBlacklist {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private Long eventId;
     private Long userId;
-    private String status;
+    private String reason;
     private LocalDateTime createdAt;
-    private LocalDateTime canceledAt;
-    private LocalDateTime checkinAt;
 }

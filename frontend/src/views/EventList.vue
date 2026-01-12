@@ -11,8 +11,27 @@
             <el-option label="培训" value="培训" />
           </el-select>
         </el-form-item>
+        <el-form-item label="标签">
+          <el-input v-model="filters.tags" placeholder="标签关键字" clearable />
+        </el-form-item>
+        <el-form-item label="时间范围">
+          <el-date-picker
+            v-model="filters.timeRange"
+            type="datetimerange"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+          />
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-select v-model="filters.sortBy" placeholder="排序" style="width: 140px">
+            <el-option label="最新发布" value="created" />
+            <el-option label="按开始时间" value="startTime" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="loadEvents">搜索</el-button>
+          <el-button @click="resetFilters">重置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -30,35 +49,107 @@
             <span>时间：{{ item.startTime }}</span>
             <span>容量：{{ item.capacity }}</span>
           </div>
+          <div class="meta tags" v-if="item.tags">
+            <el-tag v-for="tag in splitTags(item.tags)" :key="tag" size="small" type="info">
+              {{ tag }}
+            </el-tag>
+          </div>
+          <div class="status">
+            <el-tag :type="statusType(item)">{{ statusLabel(item) }}</el-tag>
+          </div>
         </el-card>
       </el-col>
     </el-row>
+    <el-empty v-if="!loading && events.length === 0" description="暂无活动" />
+    <el-pagination
+      layout="prev, pager, next"
+      :current-page="filters.page"
+      :page-size="filters.size"
+      :total="total"
+      @current-change="onPage"
+      style="margin-top: 16px; text-align: center"
+    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchEvents } from '../mock/api'
+import request from '../utils/request'
 
 const events = ref([])
-const filters = reactive({ keyword: '', category: '' })
+const total = ref(0)
+const loading = ref(false)
+const filters = reactive({
+  keyword: '',
+  category: '',
+  tags: '',
+  timeRange: [],
+  sortBy: 'created',
+  page: 1,
+  size: 10,
+})
 const router = useRouter()
 
 const loadEvents = async () => {
-  const { data } = await fetchEvents()
-  events.value = data.filter((e) => {
-    const matchKeyword =
-      !filters.keyword ||
-      e.title.includes(filters.keyword) ||
-      (e.tags && e.tags.join(',').includes(filters.keyword))
-    const matchCategory = !filters.category || e.category === filters.category
-    return matchKeyword && matchCategory
-  })
+  loading.value = true
+  try {
+    const params = {
+      keyword: filters.keyword,
+      category: filters.category,
+      tags: filters.tags,
+      start: filters.timeRange?.[0],
+      end: filters.timeRange?.[1],
+      page: filters.page,
+      size: filters.size,
+      sortBy: filters.sortBy === 'startTime' ? 'startTime' : null,
+      sortOrder: filters.sortBy === 'startTime' ? 'asc' : null,
+    }
+    const data = await request.get('/events', { params })
+    events.value = data.records || []
+    total.value = data.total || 0
+  } finally {
+    loading.value = false
+  }
+}
+
+const onPage = (p) => {
+  filters.page = p
+  loadEvents()
 }
 
 const goDetail = (id) => {
   router.push(`/events/${id}`)
+}
+
+const resetFilters = () => {
+  Object.assign(filters, {
+    keyword: '',
+    category: '',
+    tags: '',
+    timeRange: [],
+    sortBy: 'created',
+    page: 1,
+    size: 10,
+  })
+  loadEvents()
+}
+
+const splitTags = (tags) => tags.split(',').map((t) => t.trim()).filter(Boolean)
+
+const statusLabel = (item) => {
+  if (item.status && item.status !== 'published') return '未开放'
+  if (item.signupStartTime && new Date() < new Date(item.signupStartTime)) return '未开始'
+  if (item.signupEndTime && new Date() > new Date(item.signupEndTime)) return '已结束'
+  return '报名中'
+}
+
+const statusType = (item) => {
+  const label = statusLabel(item)
+  if (label === '报名中') return 'success'
+  if (label === '未开始') return 'info'
+  if (label === '已结束') return 'warning'
+  return 'info'
 }
 
 onMounted(loadEvents)
@@ -95,5 +186,11 @@ onMounted(loadEvents)
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+.tags {
+  margin-top: 8px;
+}
+.status {
+  margin-top: 10px;
 }
 </style>

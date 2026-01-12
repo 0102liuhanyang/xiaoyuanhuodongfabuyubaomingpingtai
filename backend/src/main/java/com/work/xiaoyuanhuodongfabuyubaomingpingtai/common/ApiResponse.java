@@ -20,7 +20,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(0, "success", null);
     }
 
-    public static ApiResponse<Void> failure(String message) {
+    public static <T> ApiResponse<T> failure(String message) {
         return new ApiResponse<>(-1, message, null);
     }
 }

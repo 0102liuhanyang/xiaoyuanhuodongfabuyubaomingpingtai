@@ -43,11 +43,14 @@ CREATE TABLE IF NOT EXISTS events (
     category VARCHAR(64),
     tags VARCHAR(255),
     location VARCHAR(255),
+    signup_start_time DATETIME,
+    signup_end_time DATETIME,
     start_time DATETIME,
     end_time DATETIME,
     capacity INT NOT NULL,
     status VARCHAR(32),
-    cover_url VARCHAR(255),
+    checkin_code VARCHAR(64),
+    checkin_valid_until DATETIME,
     created_at DATETIME,
     updated_at DATETIME
 );
@@ -59,6 +62,7 @@ CREATE TABLE IF NOT EXISTS registrations (
     status VARCHAR(32),
     created_at DATETIME,
     canceled_at DATETIME,
+    checkin_at DATETIME,
     UNIQUE KEY uk_event_user (event_id, user_id)
 );
 
@@ -70,4 +74,12 @@ CREATE TABLE IF NOT EXISTS notifications (
     content TEXT,
     read_flag TINYINT(1) DEFAULT 0,
     created_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS registration_blacklist (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    reason VARCHAR(255),
+    created_at DATETIME,
+    UNIQUE KEY uk_user (user_id)
 );
