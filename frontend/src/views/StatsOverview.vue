@@ -88,14 +88,14 @@ const chartOption = computed(() => ({
   xAxis: {
     type: 'category',
     data: ['报名', '签到'],
-    axisLine: { lineStyle: { color: '#c9c9c9' } },
-    axisLabel: { color: '#666' },
+    axisLine: { lineStyle: { color: 'rgba(239, 242, 255, 0.25)' } },
+    axisLabel: { color: '#cbd2ff' },
   },
   yAxis: {
     type: 'value',
     axisLine: { show: false },
-    splitLine: { lineStyle: { color: '#ececec' } },
-    axisLabel: { color: '#666' },
+    splitLine: { lineStyle: { color: 'rgba(239, 242, 255, 0.12)' } },
+    axisLabel: { color: '#cbd2ff' },
   },
   series: [
     {
@@ -126,13 +126,13 @@ const chartOption2 = computed(() => {
   const other = Math.max(total - published, 0)
   return {
     tooltip: { trigger: 'item' },
-    legend: { bottom: 0, textStyle: { color: '#666' } },
+    legend: { bottom: 0, textStyle: { color: '#cbd2ff' } },
     series: [
       {
         type: 'pie',
         radius: ['45%', '70%'],
         center: ['50%', '45%'],
-        label: { formatter: '{b}: {d}%' },
+        label: { formatter: '{b}: {d}%', color: '#cbd2ff' },
         data: [
           { value: published, name: '已发布', itemStyle: { color: '#52c41a' } },
           { value: other, name: '未发布', itemStyle: { color: '#faad14' } },
@@ -154,8 +154,8 @@ onMounted(async () => {
   margin: 0 auto;
 }
 .card {
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .header {
   display: flex;
@@ -165,14 +165,14 @@ onMounted(async () => {
 .sub {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #7b7b7b;
+  color: var(--tech-muted);
 }
 .filters {
   margin-top: 12px;
 }
 .stat-card {
-  border: none;
-  background: linear-gradient(135deg, rgba(124, 92, 243, 0.08), rgba(90, 55, 196, 0.06));
+  border: 1px solid rgba(79, 214, 255, 0.16);
+  background: linear-gradient(135deg, rgba(79, 214, 255, 0.08), rgba(138, 91, 255, 0.08));
   font-weight: 600;
 }
 .charts {
@@ -182,12 +182,12 @@ onMounted(async () => {
   gap: 16px;
 }
 .chart-card {
-  border: none;
-  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(79, 214, 255, 0.14);
+  background: rgba(16, 20, 52, 0.7);
 }
 .chart-title {
   font-weight: 600;
-  color: #333;
+  color: var(--tech-text);
   margin-bottom: 8px;
 }
 @media (max-width: 1024px) {

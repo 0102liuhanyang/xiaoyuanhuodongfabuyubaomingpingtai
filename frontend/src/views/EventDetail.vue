@@ -128,8 +128,8 @@ onMounted(load)
   margin: 0 auto;
 }
 .card {
-  background: rgba(255, 255, 255, 0.96);
-  border: none;
+  background: var(--tech-card-bg);
+  border: 1px solid var(--tech-border);
 }
 .header {
   display: flex;
@@ -139,6 +139,7 @@ onMounted(load)
 }
 .desc {
   margin: 12px 0;
-  color: #555;
+  color: var(--tech-muted);
 }
 </style>
+

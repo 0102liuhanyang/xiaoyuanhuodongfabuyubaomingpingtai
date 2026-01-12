@@ -13,4 +13,10 @@ public interface RegistrationMapper extends BaseMapper<Registration> {
                                                    @Param("eventId") Long eventId,
                                                    @Param("status") String status,
                                                    @Param("keyword") String keyword);
+
+    Page<RegistrationView> selectOrganizerRegistrations(Page<RegistrationView> page,
+                                                       @Param("creatorId") Long creatorId,
+                                                       @Param("status") String status,
+                                                       @Param("keyword") String keyword,
+                                                       @Param("checkin") String checkin);
 }

@@ -100,8 +100,21 @@ const load = async () => {
   try {
     const params = { page: page.value, size: size.value, keyword: filters.keyword }
     const data = await request.get('/admin/registrations/blacklist', { params })
+    if (!data) {
+      records.value = []
+      total.value = 0
+      return
+    }
     records.value = data.records || []
     total.value = data.total || 0
+  } catch (error) {
+    const status = error?.response?.status
+    if (status === 401 || status === 403) {
+      records.value = []
+      total.value = 0
+      return
+    }
+    throw error
   } finally {
     loading.value = false
   }
@@ -132,8 +145,8 @@ onMounted(load)
   margin: 0 auto;
 }
 .card {
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .header {
   display: flex;
@@ -144,7 +157,7 @@ onMounted(load)
 .sub {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #7b7b7b;
+  color: var(--tech-muted);
 }
 .form {
   margin-top: 16px;
@@ -153,3 +166,6 @@ onMounted(load)
   margin-top: 16px;
 }
 </style>
+
+
+

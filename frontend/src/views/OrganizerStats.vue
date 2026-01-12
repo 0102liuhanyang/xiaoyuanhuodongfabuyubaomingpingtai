@@ -6,11 +6,12 @@
           <h3>活动统计</h3>
           <p class="sub">选择活动查看报名与签到统计</p>
         </div>
-        <el-button type="primary" @click="refresh" :disabled="!eventId">刷新</el-button>
+        <el-button type="primary" @click="refresh">刷新</el-button>
       </div>
       <el-form :inline="true" class="filters" @submit.prevent>
         <el-form-item label="活动">
-          <el-select v-model="eventId" placeholder="选择活动" style="width: 260px" @change="refresh">
+          <el-select v-model="eventId" placeholder="全部" style="width: 260px" @change="refresh">
+            <el-option label="全部" value="" />
             <el-option v-for="item in events" :key="item.id" :label="item.title" :value="item.id" />
           </el-select>
         </el-form-item>
@@ -36,7 +37,7 @@
           <div class="stat-value">{{ chartData.absent }}</div>
         </el-card>
       </div>
-      <div v-if="chartData.total > 0" class="charts">
+      <div v-if="showCharts" class="charts">
         <el-card class="chart-card">
           <div class="chart-title">签到占比</div>
           <v-chart :option="option" autoresize style="height: 300px" />
@@ -47,7 +48,7 @@
         </el-card>
       </div>
       <el-empty v-else-if="eventId && !loading" description="暂无数据" />
-      <el-table v-if="eventId" :data="records" style="width: 100%; margin-top: 12px">
+      <el-table :data="records" style="width: 100%; margin-top: 12px">
         <el-table-column prop="name" label="姓名" width="120" />
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="phone" label="手机号" min-width="140" />
@@ -59,6 +60,16 @@
         <el-table-column prop="createdAt" label="报名时间" width="180" />
         <el-table-column prop="checkinAt" label="签到时间" width="180" />
       </el-table>
+      <el-empty v-if="!loading && records.length === 0" description="暂无报名明细" />
+      <div class="footer">
+        <el-pagination
+          layout="prev, pager, next"
+          :current-page="page"
+          :page-size="size"
+          :total="total"
+          @current-change="onPage"
+        />
+      </div>
     </el-card>
   </div>
 </template>
@@ -72,14 +83,14 @@ const eventId = ref('')
 const events = ref([])
 const records = ref([])
 const loading = ref(false)
+const page = ref(1)
+const size = ref(10)
+const total = ref(0)
 const chartData = ref({ registered: 0, waitlisted: 0, checkedIn: 0, absent: 0, total: 0 })
 
 const loadEvents = async () => {
   const data = await request.get('/events/mine', { params: { page: 1, size: 200 } })
   events.value = data.records || []
-  if (!eventId.value && events.value.length) {
-    eventId.value = events.value[0].id
-  }
 }
 
 const loadStats = async () => {
@@ -96,13 +107,33 @@ const loadStats = async () => {
 }
 
 const loadRegistrations = async () => {
-  if (!eventId.value) return
-  const data = await request.get(`/events/${eventId.value}/registrations`, { params: { page: 1, size: 200 } })
+  if (!eventId.value) {
+    const data = await request.get('/events/registrations/organizer', {
+      params: { page: page.value, size: size.value },
+    })
+    records.value = data.records || []
+    total.value = data.total || 0
+    const registered = records.value.filter((item) => item.status === 'registered').length
+    const waitlisted = records.value.filter((item) => item.status === 'waitlisted').length
+    const checkedIn = records.value.filter((item) => item.checkinAt).length
+    chartData.value = {
+      registered,
+      waitlisted,
+      checkedIn,
+      absent: Math.max(registered - checkedIn, 0),
+      total: registered + waitlisted,
+    }
+    return
+  }
+  const data = await request.get(`/events/${eventId.value}/registrations`, {
+    params: { page: page.value, size: size.value },
+  })
   records.value = data.records || []
+  total.value = data.total || 0
 }
 
 const refresh = async () => {
-  if (!eventId.value) return
+  page.value = 1
   loading.value = true
   try {
     await loadStats()
@@ -110,6 +141,11 @@ const refresh = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const onPage = (p) => {
+  page.value = p
+  loadRegistrations()
 }
 
 const exportCsv = async () => {
@@ -127,13 +163,13 @@ const exportCsv = async () => {
 
 const option = computed(() => ({
   tooltip: { trigger: 'item' },
-  legend: { bottom: 0, textStyle: { color: '#555' } },
+  legend: { bottom: 0, textStyle: { color: '#cbd2ff' } },
   series: [
     {
       type: 'pie',
       radius: ['40%', '65%'],
       center: ['50%', '45%'],
-      label: { formatter: '{b}: {d}%' },
+      label: { formatter: '{b}: {d}%', color: '#cbd2ff' },
       data: [
         { value: chartData.value.checkedIn, name: '已签到', itemStyle: { color: '#52c41a' } },
         { value: chartData.value.absent, name: '未签到', itemStyle: { color: '#f5222d' } },
@@ -149,14 +185,14 @@ const optionBar = computed(() => ({
   xAxis: {
     type: 'category',
     data: ['已报名', '候补', '已签到', '未签到'],
-    axisLine: { lineStyle: { color: '#c9c9c9' } },
-    axisLabel: { color: '#666' },
+    axisLine: { lineStyle: { color: 'rgba(239, 242, 255, 0.25)' } },
+    axisLabel: { color: '#cbd2ff' },
   },
   yAxis: {
     type: 'value',
     axisLine: { show: false },
-    splitLine: { lineStyle: { color: '#ececec' } },
-    axisLabel: { color: '#666' },
+    splitLine: { lineStyle: { color: 'rgba(239, 242, 255, 0.12)' } },
+    axisLabel: { color: '#cbd2ff' },
   },
   series: [
     {
@@ -186,6 +222,11 @@ const optionBar = computed(() => ({
   ],
 }))
 
+const showCharts = computed(() => {
+  if (!eventId.value) return records.value.length > 0
+  return chartData.value.total > 0
+})
+
 const statusLabel = (status) => {
   if (status === 'registered') return '已报名'
   if (status === 'waitlisted') return '候补中'
@@ -212,8 +253,8 @@ onMounted(async () => {
   margin: 0 auto;
 }
 .card {
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .header {
   display: flex;
@@ -224,7 +265,7 @@ onMounted(async () => {
 .sub {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #7b7b7b;
+  color: var(--tech-muted);
 }
 .filters {
   margin-top: 12px;
@@ -236,17 +277,22 @@ onMounted(async () => {
   gap: 12px;
 }
 .stat-card {
-  border: none;
-  background: linear-gradient(135deg, rgba(124, 92, 243, 0.08), rgba(90, 55, 196, 0.06));
+  border: 1px solid rgba(79, 214, 255, 0.16);
+  background: linear-gradient(135deg, rgba(79, 214, 255, 0.08), rgba(138, 91, 255, 0.08));
 }
 .stat-label {
-  color: #666;
+  color: var(--tech-muted);
   font-size: 12px;
 }
 .stat-value {
   font-size: 22px;
   font-weight: 700;
   margin-top: 6px;
+}
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 .charts {
   margin-top: 16px;
@@ -255,12 +301,12 @@ onMounted(async () => {
   gap: 16px;
 }
 .chart-card {
-  border: none;
-  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(79, 214, 255, 0.14);
+  background: rgba(16, 20, 52, 0.7);
 }
 .chart-title {
   font-weight: 600;
-  color: #333;
+  color: var(--tech-text);
   margin-bottom: 8px;
 }
 @media (max-width: 1024px) {

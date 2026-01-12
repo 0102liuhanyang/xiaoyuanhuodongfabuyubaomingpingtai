@@ -161,15 +161,15 @@ onMounted(loadEvents)
   margin: 0 auto;
 }
 .filter-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--tech-card-bg);
   border-radius: 12px;
-  border: none;
+  border: 1px solid var(--tech-border);
 }
 .event-card {
   margin-bottom: 16px;
   cursor: pointer;
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .event-header {
   display: flex;
@@ -177,12 +177,12 @@ onMounted(loadEvents)
   justify-content: space-between;
 }
 .desc {
-  color: #666;
+  color: var(--tech-muted);
   margin: 8px 0;
 }
 .meta {
   font-size: 13px;
-  color: #555;
+  color: var(--tech-muted);
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
@@ -194,3 +194,6 @@ onMounted(loadEvents)
   margin-top: 10px;
 }
 </style>
+
+
+

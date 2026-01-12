@@ -119,8 +119,8 @@ onMounted(load)
   margin: 0 auto;
 }
 .card {
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .header {
   display: flex;
@@ -131,9 +131,12 @@ onMounted(load)
 .sub {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #7b7b7b;
+  color: var(--tech-muted);
 }
 .form {
   margin-top: 12px;
 }
 </style>
+
+
+

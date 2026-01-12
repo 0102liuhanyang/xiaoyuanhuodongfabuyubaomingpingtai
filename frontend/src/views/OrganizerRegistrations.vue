@@ -10,7 +10,8 @@
       </div>
       <el-form :inline="true" :model="filters" class="filters" @submit.prevent>
         <el-form-item label="活动">
-          <el-select v-model="filters.eventId" placeholder="选择活动" style="width: 220px" @change="onEventChange">
+          <el-select v-model="filters.eventId" placeholder="全部" style="width: 220px" @change="onEventChange">
+            <el-option label="全部" value="" />
             <el-option v-for="item in events" :key="item.id" :label="item.title" :value="item.id" />
           </el-select>
         </el-form-item>
@@ -76,17 +77,9 @@ const filters = reactive({
 const loadEvents = async () => {
   const data = await request.get('/events/mine', { params: { page: 1, size: 200 } })
   events.value = data.records || []
-  if (!filters.eventId && events.value.length) {
-    filters.eventId = events.value[0].id
-  }
 }
 
 const load = async () => {
-  if (!filters.eventId) {
-    records.value = []
-    total.value = 0
-    return
-  }
   loading.value = true
   try {
     const params = {
@@ -94,6 +87,12 @@ const load = async () => {
       size: size.value,
       status: filters.status,
       keyword: filters.keyword,
+    }
+    if (!filters.eventId) {
+      const data = await request.get('/events/registrations/organizer', { params })
+      records.value = data.records || []
+      total.value = data.total || 0
+      return
     }
     const data = await request.get(`/events/${filters.eventId}/registrations`, { params })
     records.value = data.records || []
@@ -106,6 +105,7 @@ const load = async () => {
 const reset = () => {
   filters.keyword = ''
   filters.status = ''
+  filters.eventId = ''
   page.value = 1
   load()
 }
@@ -158,8 +158,8 @@ onMounted(async () => {
   margin: 0 auto;
 }
 .card {
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .header {
   display: flex;
@@ -170,7 +170,7 @@ onMounted(async () => {
 .sub {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #7b7b7b;
+  color: var(--tech-muted);
 }
 .filters {
   margin-top: 12px;
@@ -182,3 +182,6 @@ onMounted(async () => {
   margin-top: 16px;
 }
 </style>
+
+
+

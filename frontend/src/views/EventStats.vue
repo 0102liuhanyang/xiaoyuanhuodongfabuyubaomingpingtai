@@ -127,12 +127,12 @@ const exportCsv = async () => {
 
 const option = computed(() => ({
   tooltip: { trigger: 'item' },
-  legend: { top: 'bottom', textStyle: { color: '#333' } },
+  legend: { top: 'bottom', textStyle: { color: '#cbd2ff' } },
   series: [
     {
       type: 'pie',
       radius: ['35%', '60%'],
-      label: { formatter: '{b}: {d}%' },
+      label: { formatter: '{b}: {d}%', color: '#cbd2ff' },
       data: [
         { value: chartData.value.checkedIn, name: '已签到' },
         { value: chartData.value.absent, name: '未签到' },
@@ -168,8 +168,8 @@ onMounted(async () => {
   margin: 0 auto;
 }
 .card {
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .header {
   display: flex;
@@ -179,7 +179,7 @@ onMounted(async () => {
 .sub {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #7b7b7b;
+  color: var(--tech-muted);
 }
 .filters {
   margin-top: 12px;
@@ -191,11 +191,11 @@ onMounted(async () => {
   gap: 12px;
 }
 .stat-card {
-  border: none;
-  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(79, 214, 255, 0.16);
+  background: linear-gradient(135deg, rgba(79, 214, 255, 0.08), rgba(138, 91, 255, 0.08));
 }
 .stat-label {
-  color: #666;
+  color: var(--tech-muted);
   font-size: 12px;
 }
 .stat-value {
@@ -204,3 +204,4 @@ onMounted(async () => {
   margin-top: 6px;
 }
 </style>
+

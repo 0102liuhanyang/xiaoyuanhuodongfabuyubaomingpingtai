@@ -29,4 +29,40 @@
         </if>
         ORDER BY r.created_at DESC
     </select>
+
+    <select id="selectOrganizerRegistrations" resultType="com.work.xiaoyuanhuodongfabuyubaomingpingtai.model.dto.RegistrationView">
+        SELECT
+            r.id,
+            r.user_id AS userId,
+            u.username,
+            u.name,
+            u.phone,
+            u.email,
+            r.status,
+            r.created_at AS createdAt,
+            r.checkin_at AS checkinAt
+        FROM registrations r
+        INNER JOIN events e ON r.event_id = e.id
+        LEFT JOIN users u ON r.user_id = u.id
+        WHERE e.creator_id = #{creatorId}
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+        <if test="checkin != null and checkin != ''">
+            <if test="checkin == 'checked'">
+                AND r.checkin_at IS NOT NULL
+            </if>
+            <if test="checkin == 'unchecked'">
+                AND r.checkin_at IS NULL
+            </if>
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                u.username LIKE CONCAT('%', #{keyword}, '%')
+                OR u.name LIKE CONCAT('%', #{keyword}, '%')
+                OR u.phone LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY r.created_at DESC
+    </select>
 </mapper>

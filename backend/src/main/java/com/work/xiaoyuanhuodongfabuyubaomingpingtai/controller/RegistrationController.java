@@ -144,6 +144,25 @@ public class RegistrationController {
         return ApiResponse.success(result);
     }
 
+    @GetMapping("/events/registrations/organizer")
+    @PreAuthorize("hasAnyRole('admin','organizer')")
+    public ApiResponse<?> listOrganizerRegistrations(@RequestParam(defaultValue = "1") long page,
+                                                     @RequestParam(defaultValue = "10") long size,
+                                                     @RequestParam(required = false) String status,
+                                                     @RequestParam(required = false) String keyword,
+                                                     @RequestParam(required = false) String checkin,
+                                                     Authentication authentication) {
+        AuthUser user = (AuthUser) authentication.getPrincipal();
+        Page<RegistrationView> result = registrationMapper.selectOrganizerRegistrations(
+                new Page<>(page, size),
+                user.getUserId(),
+                status,
+                keyword,
+                checkin
+        );
+        return ApiResponse.success(result);
+    }
+
     @PostMapping("/events/{eventId}/checkin")
     @PreAuthorize("hasRole('student')")
     public ApiResponse<?> checkin(@PathVariable Long eventId, @RequestParam String code, Authentication authentication,

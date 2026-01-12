@@ -161,8 +161,8 @@ onMounted(() => {
   margin: 0 auto;
 }
 .card {
-  border: none;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--tech-border);
+  background: var(--tech-card-bg);
 }
 .header {
   display: flex;
@@ -172,15 +172,15 @@ onMounted(() => {
 .sub {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #7b7b7b;
+  color: var(--tech-muted);
 }
 .filters {
   margin-top: 12px;
 }
 .broadcast {
   margin: 12px 0;
-  border: none;
-  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--tech-border);
+  background: rgba(255, 255, 255, 0.06);
 }
 .broadcast-title {
   font-weight: 600;
@@ -199,7 +199,7 @@ onMounted(() => {
 }
 .content {
   margin: 4px 0;
-  color: #666;
+  color: var(--tech-muted);
 }
 .meta {
   font-size: 12px;
@@ -208,3 +208,6 @@ onMounted(() => {
   justify-content: space-between;
 }
 </style>
+
+
+
