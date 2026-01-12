@@ -36,8 +36,15 @@
           <div class="stat-value">{{ chartData.absent }}</div>
         </el-card>
       </div>
-      <div v-if="chartData.total > 0" style="margin-top: 16px">
-        <v-chart :option="option" autoresize style="height: 340px" />
+      <div v-if="chartData.total > 0" class="charts">
+        <el-card class="chart-card">
+          <div class="chart-title">签到占比</div>
+          <v-chart :option="option" autoresize style="height: 300px" />
+        </el-card>
+        <el-card class="chart-card">
+          <div class="chart-title">报名与签到对比</div>
+          <v-chart :option="optionBar" autoresize style="height: 300px" />
+        </el-card>
       </div>
       <el-empty v-else-if="eventId && !loading" description="暂无数据" />
       <el-table v-if="eventId" :data="records" style="width: 100%; margin-top: 12px">
@@ -120,17 +127,61 @@ const exportCsv = async () => {
 
 const option = computed(() => ({
   tooltip: { trigger: 'item' },
-  legend: { top: 'bottom', textStyle: { color: '#333' } },
+  legend: { bottom: 0, textStyle: { color: '#555' } },
   series: [
     {
       type: 'pie',
-      radius: ['35%', '60%'],
+      radius: ['40%', '65%'],
+      center: ['50%', '45%'],
       label: { formatter: '{b}: {d}%' },
       data: [
-        { value: chartData.value.checkedIn, name: '已签到' },
-        { value: chartData.value.absent, name: '未签到' },
-        { value: chartData.value.waitlisted, name: '候补' },
+        { value: chartData.value.checkedIn, name: '已签到', itemStyle: { color: '#52c41a' } },
+        { value: chartData.value.absent, name: '未签到', itemStyle: { color: '#f5222d' } },
+        { value: chartData.value.waitlisted, name: '候补', itemStyle: { color: '#faad14' } },
       ],
+    },
+  ],
+}))
+
+const optionBar = computed(() => ({
+  tooltip: { trigger: 'axis' },
+  grid: { left: 24, right: 24, top: 24, bottom: 24, containLabel: true },
+  xAxis: {
+    type: 'category',
+    data: ['已报名', '候补', '已签到', '未签到'],
+    axisLine: { lineStyle: { color: '#c9c9c9' } },
+    axisLabel: { color: '#666' },
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: { show: false },
+    splitLine: { lineStyle: { color: '#ececec' } },
+    axisLabel: { color: '#666' },
+  },
+  series: [
+    {
+      type: 'bar',
+      barWidth: 28,
+      data: [
+        chartData.value.registered || 0,
+        chartData.value.waitlisted || 0,
+        chartData.value.checkedIn || 0,
+        chartData.value.absent || 0,
+      ],
+      itemStyle: {
+        borderRadius: [6, 6, 0, 0],
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: '#7c5cf3' },
+            { offset: 1, color: '#5a37c4' },
+          ],
+        },
+      },
     },
   ],
 }))
@@ -186,7 +237,7 @@ onMounted(async () => {
 }
 .stat-card {
   border: none;
-  background: rgba(0, 0, 0, 0.03);
+  background: linear-gradient(135deg, rgba(124, 92, 243, 0.08), rgba(90, 55, 196, 0.06));
 }
 .stat-label {
   color: #666;
@@ -196,5 +247,25 @@ onMounted(async () => {
   font-size: 22px;
   font-weight: 700;
   margin-top: 6px;
+}
+.charts {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.chart-card {
+  border: none;
+  background: rgba(255, 255, 255, 0.98);
+}
+.chart-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+@media (max-width: 1024px) {
+  .charts {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

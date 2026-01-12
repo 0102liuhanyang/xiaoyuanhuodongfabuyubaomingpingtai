@@ -30,12 +30,21 @@
       </el-form>
       <div v-if="data">
         <el-row :gutter="16" style="margin-top: 12px">
-          <el-col :span="6"><el-card shadow="hover">活动总数：{{ data.events }}</el-card></el-col>
-          <el-col :span="6"><el-card shadow="hover">发布：{{ data.published }}</el-card></el-col>
-          <el-col :span="6"><el-card shadow="hover">报名总数：{{ data.registrations }}</el-card></el-col>
-          <el-col :span="6"><el-card shadow="hover">签到总数：{{ data.checkins }}</el-card></el-col>
+          <el-col :span="6"><el-card shadow="hover" class="stat-card">活动总数：{{ data.events }}</el-card></el-col>
+          <el-col :span="6"><el-card shadow="hover" class="stat-card">发布：{{ data.published }}</el-card></el-col>
+          <el-col :span="6"><el-card shadow="hover" class="stat-card">报名总数：{{ data.registrations }}</el-card></el-col>
+          <el-col :span="6"><el-card shadow="hover" class="stat-card">签到总数：{{ data.checkins }}</el-card></el-col>
         </el-row>
-        <v-chart :option="chartOption" autoresize style="height: 320px; margin-top: 16px" />
+        <div class="charts">
+          <el-card class="chart-card">
+            <div class="chart-title">报名与签到对比</div>
+            <v-chart :option="chartOption" autoresize style="height: 300px" />
+          </el-card>
+          <el-card class="chart-card">
+            <div class="chart-title">发布占比</div>
+            <v-chart :option="chartOption2" autoresize style="height: 300px" />
+          </el-card>
+        </div>
       </div>
       <el-empty v-else description="暂无数据" />
     </el-card>
@@ -75,16 +84,63 @@ const reset = () => {
 
 const chartOption = computed(() => ({
   tooltip: { trigger: 'axis' },
-  xAxis: { type: 'category', data: ['报名', '签到'] },
-  yAxis: { type: 'value' },
+  grid: { left: 24, right: 24, top: 24, bottom: 24, containLabel: true },
+  xAxis: {
+    type: 'category',
+    data: ['报名', '签到'],
+    axisLine: { lineStyle: { color: '#c9c9c9' } },
+    axisLabel: { color: '#666' },
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: { show: false },
+    splitLine: { lineStyle: { color: '#ececec' } },
+    axisLabel: { color: '#666' },
+  },
   series: [
     {
       data: data.value ? [data.value.registrations || 0, data.value.checkins || 0] : [0, 0],
       type: 'bar',
-      itemStyle: { color: '#6f42c1' },
+      barWidth: 36,
+      itemStyle: {
+        borderRadius: [6, 6, 0, 0],
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: '#7c5cf3' },
+            { offset: 1, color: '#5a37c4' },
+          ],
+        },
+      },
     },
   ],
 }))
+
+const chartOption2 = computed(() => {
+  const total = data.value ? data.value.events || 0 : 0
+  const published = data.value ? data.value.published || 0 : 0
+  const other = Math.max(total - published, 0)
+  return {
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0, textStyle: { color: '#666' } },
+    series: [
+      {
+        type: 'pie',
+        radius: ['45%', '70%'],
+        center: ['50%', '45%'],
+        label: { formatter: '{b}: {d}%' },
+        data: [
+          { value: published, name: '已发布', itemStyle: { color: '#52c41a' } },
+          { value: other, name: '未发布', itemStyle: { color: '#faad14' } },
+        ],
+      },
+    ],
+  }
+})
 
 onMounted(async () => {
   await loadOrgs()
@@ -113,5 +169,30 @@ onMounted(async () => {
 }
 .filters {
   margin-top: 12px;
+}
+.stat-card {
+  border: none;
+  background: linear-gradient(135deg, rgba(124, 92, 243, 0.08), rgba(90, 55, 196, 0.06));
+  font-weight: 600;
+}
+.charts {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.chart-card {
+  border: none;
+  background: rgba(255, 255, 255, 0.98);
+}
+.chart-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+@media (max-width: 1024px) {
+  .charts {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
