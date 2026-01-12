@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { getToken } from './auth'
+import { clearAuth, getToken } from './auth'
 
 const service = axios.create({
   baseURL: '/api',
@@ -28,6 +28,21 @@ service.interceptors.response.use(
     return data.data ?? data
   },
   (error) => {
+    const status = error.response?.status
+    if (status === 401) {
+      clearAuth()
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+      return Promise.resolve({})
+    }
+    if (status === 403) {
+      if (!getToken()) {
+        return Promise.resolve({})
+      }
+      ElMessage.error('没有权限访问')
+      return Promise.resolve({})
+    }
     ElMessage.error(error.response?.data?.message || error.message || '请求失败')
     return Promise.reject(error)
   }

@@ -59,8 +59,9 @@ const onLogin = async () => {
     const roles = (data.roles || '').split(',').filter(Boolean)
     setToken(data.token)
     setRoles(roles)
-    if (data.name) setName(data.name)
-    authStore.setAuth({ token: data.token, roles, name: data.name })
+    const displayName = data.name || form.username
+    setName(displayName)
+    authStore.setAuth({ token: data.token, roles, name: displayName })
     ElMessage.success('登录成功')
     const redirect = route.query.redirect
     const target = redirect ? redirect : getDefaultPath(roles)

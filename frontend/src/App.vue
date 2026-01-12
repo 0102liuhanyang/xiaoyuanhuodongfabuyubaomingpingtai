@@ -4,8 +4,7 @@
     <el-container v-else class="layout">
       <el-aside width="220px" class="aside">
         <div class="brand">
-          <div class="brand-logo">校园</div>
-          <div class="brand-text">活动发布与报名</div>
+          <div class="brand-text">{{ brandLabel }}</div>
         </div>
         <el-menu
           class="side-menu"
@@ -49,10 +48,7 @@
             <span>黑名单管理</span>
           </el-menu-item>
           <el-menu-item index="/notifications" v-if="isLoggedIn">
-            <span>
-              通知中心
-              <el-badge v-if="unread > 0" :value="unread" class="badge" />
-            </span>
+            <span>通知中心</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -61,7 +57,7 @@
           <div class="header-title">校园活动发布与报名管理平台</div>
           <div class="header-user">
             <span class="username">{{ displayName }}</span>
-            <el-button link type="primary" @click="logout">退出</el-button>
+            <el-button class="logout-btn" @click="logout">退出</el-button>
           </div>
         </el-header>
         <el-main class="main">
@@ -73,10 +69,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './store/auth'
-import request from './utils/request'
 
 const route = useRoute()
 const router = useRouter()
@@ -92,53 +87,15 @@ const isAdmin = computed(() => authStore.isAdmin.value)
 const isStudent = computed(() => authStore.state.roles.includes('student'))
 const isOrganizer = computed(() => authStore.state.roles.includes('organizer'))
 const displayName = computed(() => authStore.state.name || '用户')
-const unread = ref(0)
-
-let unreadTimer = null
-
+const brandLabel = computed(() => {
+  if (isAdmin.value) return '管理端'
+  if (isOrganizer.value) return '组织端'
+  return '用户端'
+})
 const logout = () => {
   authStore.reset()
-  unread.value = 0
-  if (unreadTimer) {
-    clearInterval(unreadTimer)
-    unreadTimer = null
-  }
   router.push('/login')
 }
-
-const fetchUnread = async () => {
-  if (!isLoggedIn.value) {
-    unread.value = 0
-    return
-  }
-  try {
-    const data = await request.get('/notifications/unread-count')
-    unread.value = data || 0
-  } catch (e) {
-    unread.value = 0
-  }
-}
-
-onMounted(() => {
-  fetchUnread()
-  unreadTimer = setInterval(fetchUnread, 30000)
-})
-
-const handleUnreadRefresh = () => {
-  fetchUnread()
-}
-
-onMounted(() => {
-  window.addEventListener('notifications:refresh', handleUnreadRefresh)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('notifications:refresh', handleUnreadRefresh)
-  if (unreadTimer) {
-    clearInterval(unreadTimer)
-    unreadTimer = null
-  }
-})
 </script>
 
 <style scoped>
@@ -281,7 +238,7 @@ onUnmounted(() => {
 }
 :global(.el-textarea__inner),
 :global(.el-input__inner) {
-  background: rgba(18, 22, 56, 0.72);
+  background: transparent;
 }
 :global(.el-select-dropdown__item) {
   color: var(--tech-text);
@@ -296,22 +253,29 @@ onUnmounted(() => {
   background: rgba(18, 22, 56, 0.95);
   border: 1px solid var(--tech-border);
 }
+:global(.el-input__wrapper),
+:global(.el-select__wrapper),
+:global(.el-date-editor) {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
 :global(.el-button:not(.el-button--primary)) {
   color: var(--tech-text);
   border-color: rgba(79, 214, 255, 0.3);
   background: rgba(18, 22, 56, 0.5);
 }
-:global(.el-input__wrapper),
-:global(.el-select__wrapper),
-:global(.el-date-editor) {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: none;
-}
 :global(.el-input__inner),
 :global(.el-select__selected-item),
 :global(.el-date-editor .el-range-input) {
   color: var(--tech-text);
+}
+:global(.el-date-editor .el-range-input) {
+  background: transparent !important;
+  box-shadow: none;
+}
+:global(.el-date-editor .el-range-separator) {
+  color: rgba(203, 210, 255, 0.7);
 }
 :global(.el-input__inner::placeholder),
 :global(.el-select__placeholder),
@@ -324,6 +288,11 @@ onUnmounted(() => {
   box-shadow: var(--tech-glow);
 }
 :global(.el-button--primary.is-link) {
+  background: transparent;
+  box-shadow: none;
+}
+:global(.el-button.is-link) {
+  border: none;
   background: transparent;
   box-shadow: none;
 }
@@ -340,7 +309,20 @@ onUnmounted(() => {
 }
 :global(.el-descriptions__label),
 :global(.el-descriptions__content) {
-  color: var(--tech-text);
+  color: #fff !important;
+  background: rgba(18, 22, 56, 0.75) !important;
+}
+:global(.el-descriptions) {
+  background: transparent;
+}
+:global(.el-descriptions__body) {
+  background: transparent;
+}
+:global(.el-descriptions__table) {
+  background: rgba(18, 22, 56, 0.75) !important;
+}
+:global(.el-descriptions__cell) {
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 :global(.page) {
   max-width: 100% !important;
@@ -348,12 +330,25 @@ onUnmounted(() => {
   margin: 0 !important;
 }
 :global(.el-loading-mask) {
-  background-color: transparent !important;
-  pointer-events: none;
+  background-color: rgba(6, 10, 28, 0.55) !important;
 }
 :global(.el-overlay) {
-  background-color: transparent !important;
-  pointer-events: none;
+  background-color: rgba(6, 10, 28, 0.5) !important;
+}
+:global(.el-drawer) {
+  background: var(--tech-card-bg);
+  border-left: 1px solid var(--tech-border);
+  color: var(--tech-text);
+}
+:global(.el-drawer__header) {
+  color: var(--tech-text);
+  margin-bottom: 12px;
+}
+:global(.el-drawer__title) {
+  color: var(--tech-text);
+}
+:global(.el-drawer__body) {
+  color: var(--tech-text);
 }
 .layout {
   min-height: 100vh;
@@ -376,6 +371,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: center;
 }
 .brand-logo {
   width: 40px;
@@ -391,6 +387,10 @@ onUnmounted(() => {
 .brand-text {
   font-weight: 600;
   line-height: 1.2;
+  text-align: center;
+  width: 100%;
+  font-size: 18px;
+  letter-spacing: 0.4px;
 }
 .side-menu {
   border-right: none;
@@ -429,8 +429,16 @@ onUnmounted(() => {
 .username {
   color: var(--tech-text);
 }
-.badge {
-  margin-left: 6px;
+.logout-btn {
+  font-size: 14px;
+  color: #fff;
+  background: #ff5c5c;
+  border: none;
+  padding: 6px 12px;
+  box-shadow: 0 0 10px rgba(255, 92, 92, 0.35);
+}
+.logout-btn:hover {
+  background: #ff3b3b;
 }
 .main {
   padding: 0;
