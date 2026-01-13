@@ -83,7 +83,7 @@
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
-        <el-form-item label="容量">
+        <el-form-item label="人数">
           <el-input-number v-model="form.capacity" :min="1" />
         </el-form-item>
         <el-form-item label="描述">

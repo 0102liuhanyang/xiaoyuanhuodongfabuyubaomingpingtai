@@ -111,8 +111,8 @@ public class EventController {
         if (!isAdmin && !db.getCreatorId().equals(user.getUserId())) {
             return ApiResponse.failure("无权限修改");
         }
-        if (!isAdmin && EventStatus.ARCHIVED.equals(db.getStatus())) {
-            return ApiResponse.failure("已归档的活动不可编辑");
+        if (!canEditStatus(db.getStatus())) {
+            return ApiResponse.failure("当前状态不可编辑");
         }
         boolean timeChanged = request.getStartTime() != null && !request.getStartTime().equals(db.getStartTime())
                 || request.getEndTime() != null && !request.getEndTime().equals(db.getEndTime());
@@ -146,6 +146,9 @@ public class EventController {
         if (db == null) {
             return ApiResponse.failure("活动不存在");
         }
+        if (!canCancelStatus(db.getStatus())) {
+            return ApiResponse.failure("当前状态不可下架");
+        }
         AuthUser user = (AuthUser) authentication.getPrincipal();
         if (!user.getRoles().contains(Roles.ADMIN) && !db.getCreatorId().equals(user.getUserId())) {
             return ApiResponse.failure("无权限删除");
@@ -164,6 +167,9 @@ public class EventController {
         Event db = eventService.getById(id);
         if (db == null) {
             return ApiResponse.failure("活动不存在");
+        }
+        if (!canSubmitStatus(db.getStatus())) {
+            return ApiResponse.failure("当前状态不可提交审核");
         }
         AuthUser user = (AuthUser) authentication.getPrincipal();
         if (!user.getRoles().contains(Roles.ADMIN) && !db.getCreatorId().equals(user.getUserId())) {
@@ -356,6 +362,9 @@ public class EventController {
         if (db == null) {
             return ApiResponse.failure("活动不存在");
         }
+        if (!canArchiveStatus(db.getStatus())) {
+            return ApiResponse.failure("当前状态不可归档");
+        }
         AuthUser user = (AuthUser) authentication.getPrincipal();
         if (!user.getRoles().contains(Roles.ADMIN) && !db.getCreatorId().equals(user.getUserId())) {
             return ApiResponse.failure("无权限归档");
@@ -378,5 +387,25 @@ public class EventController {
         dest.setEndTime(src.getEndTime());
         dest.setCapacity(src.getCapacity());
         dest.setOrgId(src.getOrgId());
+    }
+
+    private boolean canEditStatus(String status) {
+        return EventStatus.DRAFT.equals(status)
+                || EventStatus.REJECTED.equals(status)
+                || EventStatus.PUBLISHED.equals(status);
+    }
+
+    private boolean canSubmitStatus(String status) {
+        return EventStatus.DRAFT.equals(status) || EventStatus.REJECTED.equals(status);
+    }
+
+    private boolean canArchiveStatus(String status) {
+        return EventStatus.PUBLISHED.equals(status) || EventStatus.CANCELED.equals(status);
+    }
+
+    private boolean canCancelStatus(String status) {
+        return EventStatus.DRAFT.equals(status)
+                || EventStatus.PENDING.equals(status)
+                || EventStatus.PUBLISHED.equals(status);
     }
 }

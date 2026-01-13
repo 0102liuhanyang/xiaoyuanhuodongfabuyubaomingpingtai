@@ -336,7 +336,7 @@ const logout = () => {
   background-color: rgba(6, 10, 28, 0.5) !important;
 }
 :global(.el-drawer) {
-  background: var(--tech-card-bg);
+  background: rgba(18, 22, 56, 0.9);
   border-left: 1px solid var(--tech-border);
   color: var(--tech-text);
 }
@@ -349,6 +349,9 @@ const logout = () => {
 }
 :global(.el-drawer__body) {
   color: var(--tech-text);
+}
+:global(.el-form-item__label) {
+  color: #fff;
 }
 .layout {
   min-height: 100vh;
