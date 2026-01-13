@@ -16,6 +16,14 @@
           <el-select v-model="filters.category" placeholder="全部" clearable style="width: 160px">
             <el-option label="演出" value="演出" />
             <el-option label="培训" value="培训" />
+            <el-option label="讲座" value="讲座" />
+            <el-option label="社团" value="社团" />
+            <el-option label="公益" value="公益" />
+            <el-option label="竞赛" value="竞赛" />
+            <el-option label="招新" value="招新" />
+            <el-option label="展览" value="展览" />
+            <el-option label="沙龙" value="沙龙" />
+            <el-option label="志愿" value="志愿" />
           </el-select>
         </el-form-item>
         <el-form-item label="时间范围">
